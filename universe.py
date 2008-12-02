@@ -9,6 +9,8 @@ from OpenGLContext.scenegraph import imagetexture
 
 class Universe( object ):
 	
+
+	
 	def __init__( self ):
 		#create scene graph (universe)
 		self.uni = basenodes.sceneGraph()
@@ -215,7 +217,10 @@ class Universe( object ):
 		)		
 		obj.children[0] = t
 		for m in range( len(obj.children[1].children) ):
-			tmpTex = imagetexture.ImageTexture( url = [urls[m]] ) 
+			try:
+				tmpTex = imagetexture.ImageTexture( url = [urls[m]] ) 
+			except IOError:
+				print 'oops'
 			obj.children[1].children[m].children[0].children[0].children[0].appearance.texture = tmpTex
 		
 		
@@ -246,7 +251,7 @@ class Universe( object ):
 						
 	def rotateMoons( self, ang ):
 		"""rotates the moons on all the planets"""
-		
 	
+
 		
 		

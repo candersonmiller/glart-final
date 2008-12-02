@@ -21,7 +21,7 @@ def getImageUrls(url):
 	imageurls = list()  #keep list of image urls
 	for image in images:
 		imageurl = image['src']  #search for image sources
-		if( not (imageurl.count('magnify-clip') or imageurl.count('wikimedia-button') or imageurl.count('Commons-logo') or imageurl.count('Status_iucn') or imageurl.count('red_question_mark') or imageurl.count('Wikispecies') or imageurl.count('poweredby_mediawiki'))):
+		if( not (imageurl.count('magnify-clip') or imageurl.count('wikimedia-button') or imageurl.count('Wiktionary') or imageurl.count('Padlock-olive') or imageurl.count('Question_book') or imageurl.count('Commons-logo') or imageurl.count('Status_iucn') or imageurl.count('red_question_mark') or imageurl.count('Wikispecies') or imageurl.count('poweredby_mediawiki'))):
 			#filter out wikimedia images
 			imageurls.append(imageurl)
 	return imageurls

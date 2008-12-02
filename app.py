@@ -63,6 +63,8 @@ class TestContext( BaseContext ):
 		
 		self.rot = 0
 		
+		self.offset = 3
+		
 		#dragging flag
 		self.startDrag = 0
 		
@@ -95,11 +97,15 @@ class TestContext( BaseContext ):
 		cursor = conn.cursor()
 		cursor.execute( "SELECT * FROM history")
 		self.planetMoons = list();
+		offsetset = 0
 		while (1):
 			row = cursor.fetchone()
 			if row == None:
 				break
 			print "%s\t%s\t%s" % (row[0], row[2], row[1])	
+			if(not offsetset):
+				self.offset = row[0]
+				offsetset = 1
 			url = row[1]
 			imageurls = gethistory.getImageUrls(url)
 			self.universe.addPlanet(row[0], len(imageurls))
@@ -115,7 +121,7 @@ class TestContext( BaseContext ):
 				
 				fullpath = image.split('/')
 				fileList.append( fullpath[len(fullpath) - 1] )
-				#os.system(linetoExec)  #uncomment this before real runs
+				os.system(linetoExec)  #uncomment this before real runs
 				
 			self.planetMoons.append(fileList)
 			
@@ -214,13 +220,13 @@ class TestContext( BaseContext ):
 					self.universe.unRenderDetail( self.lastDetail )
 				#print self.planetMoons
 				#render font geom
-				self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ foundPlanet.name - 3] )
+				self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ foundPlanet.name - self.offset] )
 				self.strPos += 1
 					
 				#render the new one detailed
 				
 				self.lastDetail = foundPlanet
-				self.universe.renderDetail( foundPlanet, self.geometry , self.planetMoons[foundPlanet.name - 3] )
+				self.universe.renderDetail( foundPlanet, self.geometry , self.planetMoons[foundPlanet.name - self.offset] )
 				
 				
 				#calc the new point in global space
