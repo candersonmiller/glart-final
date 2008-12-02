@@ -4,7 +4,7 @@ import math, random
 
 from OpenGLContext import displaylist
 from OpenGLContext.scenegraph.text import toolsfont
-
+from OpenGLContext.scenegraph import imagetexture
 
 
 class Universe( object ):
@@ -207,7 +207,8 @@ class Universe( object ):
 				basenodes.Shape(
 					geometry = geom,
 					appearance = basenodes.Appearance(
-						material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+						#material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+						texture = imagetexture.ImageTexture( url = "200px-Bradypus.jpg"),
 					),
 				),
 			],

@@ -27,6 +27,8 @@ import urllib2
 import re
 from BeautifulSoup import BeautifulSoup
 from BeautifulSoup import SoupStrainer
+import sys
+import os
 
 #for mysql
 import MySQLdb
@@ -103,9 +105,15 @@ class TestContext( BaseContext ):
 			names = url.split('/')
 			wikititle = names[len(names) - 1]
 			wikititle = wikititle.replace('_', ' ')
-			self.stringArray.append(wikititle);
-			#for imageurl in imageurls:
-			#	print imageurl
+			self.stringArray.append(wikititle)
+			
+			fileList = list()
+			for image in imageurls:
+				linetoExec = "wget " + image
+				fullpath = image.split('/')
+				fileList.append( fullpath[len(fullpath) - 1] )
+				os.system(linetoExec)
+				
 
 						
 		"""Setup callbacks and build geometry for rendering"""
