@@ -22,8 +22,23 @@ from OpenGLContext.events.timer import Timer
 from OpenGLContext.scenegraph.text import toolsfont, fontprovider, fontstyle3d
 from OpenGLContext import displaylist
 
+### Stuff For Wikipedia Image Import
+import urllib2
+import re
+from BeautifulSoup import BeautifulSoup
+from BeautifulSoup import SoupStrainer
+
+#for mysql
+import MySQLdb
+import gethistory
+
 import math
 import universe
+
+## For speed optimization
+import psyco
+psyco.full()
+
 
 #from OpenGLContext import trackball, quaternion
 
@@ -54,15 +69,43 @@ class TestContext( BaseContext ):
 		
 		
 		#make some random planets and systems
-		self.universe = universe.Universe()
+		#self.universe = universe.Universe()
 		
-		numSys = 8#random.random()*100
-		for s in range( int(numSys) ):
-			self.universe.addSys( s )
-			numPlan = 10#random.random()*100+1
-			for p in range( int(numPlan) ):
-				numMoons = random.random()*4+1
-				self.universe.addPlanet( p,int(numMoons) )
+		#numSys = 10#random.random()*100
+		#for s in range( int(numSys) ):
+		#	self.universe.addSys( s )
+		#	numPlan = 8#random.random()*100+1
+		#	for p in range( int(numPlan) ):
+		#		numMoons = random.random()*4+1
+		#		self.universe.addPlanet( p,int(numMoons) )
+				
+				
+		####	Starting SQL Integration Here
+		self.universe = universe.Universe()
+		numSys = 1
+		self.universe.addSys('theonlysystem')
+		
+		conn = MySQLdb.connect( host = "ec2-75-101-245-127.compute-1.amazonaws.com",
+								user = "wikihole",
+								passwd = "ohhai",
+								db = "wikihole")
+		self.stringArray = []
+		cursor = conn.cursor()
+		cursor.execute( "SELECT * FROM history")
+		while (1):
+			row = cursor.fetchone()
+			if row == None:
+				break
+			print "%s\t%s\t%s" % (row[0], row[2], row[1])	
+			url = row[1]
+			imageurls = gethistory.getImageUrls(url)
+			self.universe.addPlanet(row[0], len(imageurls))
+			names = url.split('/')
+			wikititle = names[len(names) - 1]
+			wikititle = wikititle.replace('_', ' ')
+			self.stringArray.append(wikititle);
+			#for imageurl in imageurls:
+			#	print imageurl
 
 						
 		"""Setup callbacks and build geometry for rendering"""
