@@ -70,7 +70,7 @@ class Universe( object ):
 				rotation = ( 0,0,0,0 ),
 				children = [
 					basenodes.Shape(
-						geometry = basenodes.Box( size = ( 0.05,0.2,0.2) ),
+						geometry = basenodes.Box( size = ( 0.01,0.2,0.2) ),
 						appearance = basenodes.Appearance(
 							material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
 						),
@@ -197,7 +197,7 @@ class Universe( object ):
 			return ()
 		
 		
-	def renderDetail( self, obj, geom ):
+	def renderDetail( self, obj, geom, urls ):
 		"""takes in an object, switches out its geometry for detailed geometry"""
 		#make the detail geometry
 		t = basenodes.Transform(
@@ -207,14 +207,17 @@ class Universe( object ):
 				basenodes.Shape(
 					geometry = geom,
 					appearance = basenodes.Appearance(
-						#material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
-						texture = imagetexture.ImageTexture( url = "200px-Bradypus.jpg"),
+						material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+						#texture = imagetexture.ImageTexture( url = "200px-Bradypus.jpg"),
 					),
 				),
 			],
 		)		
 		obj.children[0] = t
-
+		for m in range( len(obj.children[1].children) ):
+			tmpTex = imagetexture.ImageTexture( url = [urls[m]] ) 
+			obj.children[1].children[m].children[0].children[0].children[0].appearance.texture = tmpTex
+		
 		
 	def unRenderDetail( self, obj ):
 		"""puts the simple geometry back into the passes object"""

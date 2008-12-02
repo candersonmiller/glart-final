@@ -94,6 +94,7 @@ class TestContext( BaseContext ):
 		self.stringArray = []
 		cursor = conn.cursor()
 		cursor.execute( "SELECT * FROM history")
+		self.planetMoons = list();
 		while (1):
 			row = cursor.fetchone()
 			if row == None:
@@ -107,12 +108,18 @@ class TestContext( BaseContext ):
 			wikititle = wikititle.replace('_', ' ')
 			self.stringArray.append(wikititle)
 			
+			
 			fileList = list()
 			for image in imageurls:
 				linetoExec = "wget " + image
+				
 				fullpath = image.split('/')
 				fileList.append( fullpath[len(fullpath) - 1] )
-				os.system(linetoExec)
+				#os.system(linetoExec)  #uncomment this before real runs
+				
+			self.planetMoons.append(fileList)
+			
+			# send file list to moons
 				
 
 						
@@ -205,14 +212,15 @@ class TestContext( BaseContext ):
 				#if there is one rendered detailed... put the simple back in
 				if self.lastDetail:
 					self.universe.unRenderDetail( self.lastDetail )
-					
+				#print self.planetMoons
 				#render font geom
-				self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ self.strPos ] )
+				self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ foundPlanet.name - 3] )
 				self.strPos += 1
 					
 				#render the new one detailed
+				
 				self.lastDetail = foundPlanet
-				self.universe.renderDetail( foundPlanet, self.geometry )
+				self.universe.renderDetail( foundPlanet, self.geometry , self.planetMoons[foundPlanet.name - 3] )
 				
 				
 				#calc the new point in global space
