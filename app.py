@@ -46,9 +46,9 @@ psyco.full()
 
 class TestContext( BaseContext ):
 	def OnInit( self ):
-		
+		self.iter = 0
 		self.strPos = 0
-		
+		self.newSystemTime = 300
 		self.systemIterator = 0
 		self.uniqueIDs = []
 		
@@ -60,10 +60,10 @@ class TestContext( BaseContext ):
 		self.time.register (self)
 		self.time.start ()
 		
-		self.updater = Timer(duration = 61, repeating = 1)
-		self.updater.addEventHandler("checksql", self.updateFromSQL )
-		self.updater.register(self)
-		self.updater.start ()
+		#self.updater = Timer(duration = 61, repeating = 1)
+		#self.updater.addEventHandler("cycle", self.updateFromSQL )
+		#self.updater.register(self)
+		#self.updater.start ()
 		
 		
 		self.rot = 0
@@ -117,7 +117,7 @@ class TestContext( BaseContext ):
 				lastTime = thisTime
 				thisTime = "%s" % row[2]
 			
-			if( not gethistory.timeDiff(lastTime, thisTime, 300) ):
+			if( not gethistory.timeDiff(lastTime, thisTime, self.newSystemTime) ):
 				self.systemIterator = self.systemIterator + 1
 				self.universe.addSys(self.systemIterator)
 				print "MADE NEW SYSTEM"
@@ -290,9 +290,12 @@ class TestContext( BaseContext ):
 			time.sleep( .05 )	
 			
 	def OnTimerFraction( self, event ):
-		jim = 2
 		self.universe.rotatePlanets( 60*event.fraction() )
-		self.updateFromSQL
+		self.iter = self.iter + 1
+		#print "awesome! %d" % self.iter
+		if(self.iter > 200):  
+			self.updateFromSQL()
+			self.iter = 0
 		
 	def tweenCam( self ):
 		speed = 0.1
@@ -320,7 +323,7 @@ class TestContext( BaseContext ):
 		if( avgDist < 0.001 ):
 			self.goTo = 0
 			
-	def updateFromSQL():
+	def updateFromSQL(self):
 		print "ACTUALLY CALLED updateFromSQL!!! wohoo!!!\n"
 		largestRecord = -12
 		for ident in self.uniqueIDs:
@@ -332,15 +335,37 @@ class TestContext( BaseContext ):
 								user = "wikihole",
 								passwd = "ohhai",
 								db = "wikihole")
+								
+		cursor = conn.cursor()
+		cursor.execute("SELECT * FROM history WHERE id = %d" % largestRecord)
+		row = cursor.fetchone()
+		lastHighest = "%s" % row[2]
+		
+		
 		cursor = conn.cursor()
 		cursor.execute( "SELECT * FROM history WHERE id > %d" % largestRecord)
 		
 		print "checking for records larger than %d" % largestRecord
+		first = 1
 		while (1):
 			row = cursor.fetchone()
 			if row == None:
 				break
 			print "%s\t%s\t%s" % (row[0], row[2], row[1])	
+			if(first):
+				lastTime = lastHighest
+				thisTime = "%s" % row[2]
+				first = 0
+			else:
+				lastTime = thisTime
+				thisTime = "%s" % row[2]
+
+			if( not gethistory.timeDiff(lastTime, thisTime, self.newSystemTime) ):
+				self.systemIterator = self.systemIterator + 1
+				self.universe.addSys(self.systemIterator)
+				print "MADE NEW SYSTEM"
+				#print lastTime
+				#print thisTime
 			url = row[1]
 			self.uniqueIDs.append(row[0])
 			imageurls = gethistory.getImageUrls(url)
