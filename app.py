@@ -129,8 +129,12 @@ class TestContext( BaseContext ):
 				linetoExec = "wget " + image
 				
 				fullpath = image.split('/')
-				fileList.append( fullpath[len(fullpath) - 1] )
-				os.system(linetoExec)  #uncomment this before real runs
+				existsOrNot =  os.path.exists( fullpath[len(fullpath) - 1] )
+				if(existsOrNot):
+					fileList.append( fullpath[len(fullpath) - 1] )
+				else:
+					fileList.append( fullpath[len(fullpath) - 1] )
+					os.system(linetoExec)  #uncomment this before real runs
 				
 			self.planetMoons.append(fileList)
 			
