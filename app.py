@@ -92,7 +92,7 @@ class TestContext( BaseContext ):
 		####	Starting SQL Integration Here
 		self.universe = universe.Universe()
 		numSys = 1
-		self.universe.addSys('theonlysystem')
+		self.universe.addSys(self.systemIterator)
 		
 		conn = MySQLdb.connect( host = "ec2-75-101-245-127.compute-1.amazonaws.com",
 								user = "wikihole",
@@ -111,6 +111,18 @@ class TestContext( BaseContext ):
 			if(not offsetset):
 				self.offset = row[0]
 				offsetset = 1
+				lastTime = "%s" % row[2]
+				thisTime = "%s" % row[2]
+			else:
+				lastTime = thisTime
+				thisTime = "%s" % row[2]
+			
+			if( not gethistory.timeDiff(lastTime, thisTime, 300) ):
+				self.systemIterator = self.systemIterator + 1
+				self.universe.addSys(self.systemIterator)
+				print "MADE NEW SYSTEM"
+				#print lastTime
+				#print thisTime
 			
 			url = row[1]
 			

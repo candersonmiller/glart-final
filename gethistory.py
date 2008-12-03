@@ -47,22 +47,26 @@ def timeDiff(time1, time2, secondsApart):
 	
 	first = datetime.datetime(year,month,day,hour,minute,second)
 	
-	dateAndTime = time2.split(' ')
-	date1 = dateAndTime[0]
-	yearMonDay = date1.split('-')
-	time1 = dateAndTime[1]
-	hourMinSec = time1.split(':')
+	dateAndTime2 = time2.split(' ')
+	date2 = dateAndTime2[0]
+	yearMonDay2 = date2.split('-')
+	time2 = dateAndTime2[1]
+	hourMinSec2 = time2.split(':')
 
-	year = int(yearMonDay[0])
-	month = int(yearMonDay[1])
-	day = int(yearMonDay[2])
-	hour = int(hourMinSec[0])
-	minute = int(hourMinSec[1])
-	second = int(hourMinSec[2])
+	year2 = int(yearMonDay2[0])
+	month2 = int(yearMonDay2[1])
+	day2 = int(yearMonDay2[2])
+	hour2 = int(hourMinSec2[0])
+	minute2 = int(hourMinSec2[1])
+	second2 = int(hourMinSec2[2])
 	
-	second = datetime.datetime(year,month,day,hour,minute,second)
+	second = datetime.datetime(year2,month2,day2,hour2,minute2,second2)
+	#(  	[days[, seconds[, microseconds[, milliseconds[, minutes[, hours[, weeks]]]]]]])
 	
- 	if ( (second - first) > datetime.timedelta(0, secondsApart, 0) ):
+	print (second - first)
+	correctDiff = datetime.timedelta(0, secondsApart, 0, 0 , 0 , 0, 0)
+	print correctDiff
+ 	if ( (second - first) > correctDiff ):
 		return 0
 	else:
 		return 1
@@ -90,8 +94,10 @@ def main():
 		
 		prevTime = currTime
 		currTime = "%s" % row[2]
-		if( timeDiff(prevTime, currTime) > datetime.timedelta(0, 15, 0) ):
-			print 'bigger than 15 seconds'
+		if( timeDiff(prevTime, currTime, 45) ):
+			print 'Consecutive'
+		else:
+			print "NONCONSECUTIVE"
 		url = row[1]
 		imageurls = getImageUrls(url)
 		#for imageurl in imageurls:
