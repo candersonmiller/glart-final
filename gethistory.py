@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import MySQLdb
+import time
 import datetime
 import sys
 import os
@@ -27,9 +28,44 @@ def getImageUrls(url):
 	return imageurls
 
 
-def timeDiff(time1, time2):
-	print fromtimestamp(time1)
-	print time2
+
+## send SQL formatted time 1, SQL formatted time 2, and if they are greater than N seconds apart, it will return false, else it will return false
+def timeDiff(time1, time2, secondsApart):
+
+	dateAndTime = time1.split(' ')
+	date1 = dateAndTime[0]
+	yearMonDay = date1.split('-')
+	time1 = dateAndTime[1]
+	hourMinSec = time1.split(':')
+
+	year = int(yearMonDay[0])
+	month = int(yearMonDay[1])
+	day = int(yearMonDay[2])
+	hour = int(hourMinSec[0])
+	minute = int(hourMinSec[1])
+	second = int(hourMinSec[2])
+	
+	first = datetime.datetime(year,month,day,hour,minute,second)
+	
+	dateAndTime = time2.split(' ')
+	date1 = dateAndTime[0]
+	yearMonDay = date1.split('-')
+	time1 = dateAndTime[1]
+	hourMinSec = time1.split(':')
+
+	year = int(yearMonDay[0])
+	month = int(yearMonDay[1])
+	day = int(yearMonDay[2])
+	hour = int(hourMinSec[0])
+	minute = int(hourMinSec[1])
+	second = int(hourMinSec[2])
+	
+	second = datetime.datetime(year,month,day,hour,minute,second)
+	
+ 	if ( (second - first) > datetime.timedelta(0, secondsApart, 0) ):
+		return 0
+	else:
+		return 1
 	
 
 def main():
@@ -41,18 +77,25 @@ def main():
 	cursor.execute( "SELECT * FROM history")
 	prevTime = "1984-04-16 02:01:02"
 	currTime = "1984-04-16 02:01:02"
+	first = 1
 	while (1):
 		row = cursor.fetchone()
 		if row == None:
 			break
 		print "%s\t%s\t%s" % (row[0], row[2], row[1])	
+		if(first):
+			currTime = "%s" % row[2]
+			prevTime = "%s" % row[2]
+			first = 0
+		
 		prevTime = currTime
 		currTime = "%s" % row[2]
-		timeDiff(prevTime, currTime)
+		if( timeDiff(prevTime, currTime) > datetime.timedelta(0, 15, 0) ):
+			print 'bigger than 15 seconds'
 		url = row[1]
 		imageurls = getImageUrls(url)
-		for imageurl in imageurls:
-			print imageurl
+		#for imageurl in imageurls:
+		#	print imageurl
 		
 	
 if __name__ == '__main__':

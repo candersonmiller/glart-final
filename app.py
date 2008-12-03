@@ -47,11 +47,10 @@ psyco.full()
 class TestContext( BaseContext ):
 	def OnInit( self ):
 		
-		self.stringArray = []
-		self.stringArray.append( "thi is a sweet string\ndon't you think?")
-		self.stringArray.append( "man o man this is \na long one")
-		self.stringArray.append( "poopty pants")
 		self.strPos = 0
+		
+		self.systemIterator = 0
+		self.uniqueIDs = []
 		
 		glutReshapeWindow( 800, 600)
 		glutPositionWindow( 0, 0 )
@@ -60,6 +59,12 @@ class TestContext( BaseContext ):
 		self.time.addEventHandler( "fraction", self.OnTimerFraction )
 		self.time.register (self)
 		self.time.start ()
+		
+		self.updater = Timer(duration = 61, repeating = 1)
+		self.updater.addEventHandler("checksql", self.updateFromSQL )
+		self.updater.register(self)
+		self.updater.start ()
+		
 		
 		self.rot = 0
 		
@@ -106,7 +111,11 @@ class TestContext( BaseContext ):
 			if(not offsetset):
 				self.offset = row[0]
 				offsetset = 1
+			
 			url = row[1]
+			
+			self.uniqueIDs.append(row[0])
+			
 			imageurls = gethistory.getImageUrls(url)
 			self.universe.addPlanet(row[0], len(imageurls))
 			names = url.split('/')
@@ -267,6 +276,7 @@ class TestContext( BaseContext ):
 	def OnTimerFraction( self, event ):
 		jim = 2
 		self.universe.rotatePlanets( 60*event.fraction() )
+		self.updateFromSQL
 		
 	def tweenCam( self ):
 		speed = 0.1
@@ -294,7 +304,46 @@ class TestContext( BaseContext ):
 		if( avgDist < 0.001 ):
 			self.goTo = 0
 			
-	
+	def updateFromSQL():
+		print "ACTUALLY CALLED updateFromSQL!!! wohoo!!!\n"
+		largestRecord = -12
+		for ident in self.uniqueIDs:
+			if(ident > largestRecord):
+				largestRecord = ident
+		
+		
+		conn = MySQLdb.connect( host = "ec2-75-101-245-127.compute-1.amazonaws.com",
+								user = "wikihole",
+								passwd = "ohhai",
+								db = "wikihole")
+		cursor = conn.cursor()
+		cursor.execute( "SELECT * FROM history WHERE id > %d" % largestRecord)
+		
+		print "checking for records larger than %d" % largestRecord
+		while (1):
+			row = cursor.fetchone()
+			if row == None:
+				break
+			print "%s\t%s\t%s" % (row[0], row[2], row[1])	
+			url = row[1]
+			self.uniqueIDs.append(row[0])
+			imageurls = gethistory.getImageUrls(url)
+			self.universe.addPlanet(row[0], len(imageurls))
+			names = url.split('/')
+			wikititle = names[len(names) - 1]
+			wikititle = wikititle.replace('_', ' ')
+			self.stringArray.append(wikititle)
+			
+			
+			fileList = list()
+			#do this stuff in a thread
+			for image in imageurls:
+				linetoExec = "wget " + image
+				fullpath = image.split('/')
+				fileList.append( fullpath[len(fullpath) - 1] )
+				os.system(linetoExec)  #uncomment this before real runs
+				
+			self.planetMoons.append(fileList)
 
 if __name__ == "__main__":
 	MainFunction ( TestContext)
