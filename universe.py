@@ -202,6 +202,7 @@ class Universe( object ):
 	def renderDetail( self, obj, geom, urls ):
 		"""takes in an object, switches out its geometry for detailed geometry"""
 		#make the detail geometry
+		"""
 		t = basenodes.Transform(
 			translation = ( 0,0,0 ),
 			rotation = ( 0,0,0,0 ),
@@ -214,7 +215,9 @@ class Universe( object ):
 					),
 				),
 			],
-		)		
+		)	
+		"""
+		t = self.makeSpiral( geom )	
 		obj.children[0] = t
 		for m in range( len(obj.children[1].children) ):
 			try:
@@ -222,7 +225,7 @@ class Universe( object ):
 			except IOError:
 				print 'oops'
 			obj.children[1].children[m].children[0].children[0].children[0].appearance.texture = tmpTex
-		
+			
 		
 	def unRenderDetail( self, obj ):
 		"""puts the simple geometry back into the passes object"""
@@ -251,7 +254,87 @@ class Universe( object ):
 						
 	def rotateMoons( self, ang ):
 		"""rotates the moons on all the planets"""
-	
+		
+	def makeSpiral( self ):
+		radi = 1
+		sPoints = []
+		zRot = 720
+		while zRot<2880:
+			xyRot = zRot/20
+			zxD = math.sin( radians( xyRot )*radi )
+			yD = math.cos( radians( xyRot )*radi )
+			zD = math.cos( radians( zRot )*zxD )
+			xD = math.sin( radians( zRot )*zxD )
+			zRot += 18
+			
+			t = basenodes.Transform(
+				translation = ( xD,yD,zD ),
+				rotation = ( 0,0,0,0 ),
+				children = [ 
+					basenodes.Shape(
+						geometry = basenodes.Box( size = (.1,.1,.1) ),
+						appearance = basenodes.Appearance(
+							material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+						),
+					),
+				],
+			)
+			sPoints.append( t )
+			
+		spiral = basenodes.Transform(
+			translation = ( 0,0,0 ),
+			rotation = ( 0,0,0,0 ),
+			children = sPoints
+		)
+		return spiral
+			
+			
+	def makeSpiral( self,geom ):
+		radi = 0.2
+		sPoints = []
+		zRot = 720
+		while zRot<2880:
+			xyRot = zRot/20
+			zxRad = math.sin( math.radians( xyRot ) )*radi
+			yD = math.cos( math.radians( xyRot ) )*radi
+			zD = math.cos( math.radians( zRot ) )*zxRad
+			xD = math.sin( math.radians( zRot ) )*zxRad
 
+			t = basenodes.Transform(
+				translation = ( xD,yD,zD ),
+				rotation = ( 0,1,.05,math.radians( zRot ) ),
+				children = [ 
+					basenodes.Shape(
+						geometry = geom[ len(sPoints) ],
+						appearance = basenodes.Appearance(
+							material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+						),
+					),
+				],
+			)
+			sPoints.append( t )
+			zRot += 11
+			
+		spher = basenodes.Transform(
+			translation = ( 0,0,0 ),
+			rotation = ( 0,0,0,0 ),
+			children = [ 
+				basenodes.Shape(
+					geometry = basenodes.Sphere( radius = 0.17 ),
+					appearance = basenodes.Appearance(
+						material = basenodes.Material( diffuseColor = (0,0,0) ),
+					),
+				),
+			],
+		)
+		sPoints.append( spher )
+
+		spiral = basenodes.Transform(
+			translation = ( 0,0,0 ),
+			rotation = ( 0,0,0,0 ),
+			children = sPoints
+		)
+		print "NUM NODES IN SPIRSL: ", len(sPoints)
+		return spiral
 		
 		

@@ -46,6 +46,10 @@ psyco.full()
 
 class TestContext( BaseContext ):
 	def OnInit( self ):
+		
+		self.bigString = "A cactus (plural: cacti or cactuses) is any member of the spine plant family Cactaceae, native to the Americas. They are often used as ornamental plants, but some are also crop plants. Cacti are distinctive and unusual plants, which are adapted to extremely arid and hot environments, showing a wide range of anatomical and physiological features which conserve water. Their stems have expanded into green succulent structures containing the chlorophyll necessary for life and growth, while the leaves have become the spines for which cacti are so well known. Cacti come in a wide range of shapes and sizes. The tallest is Pachycereus pringlei, with a maximum recorded height of 19.2 m,[1] and the smallest is Blossfeldia liliputiana, only about 1 cm diameter at maturity.[2] Cactus flowers are large, and like the spines and branches arise from areoles. Many cactus species are night blooming, as they are pollinated by nocturnal insects or small animals, principally moths and bats. Cacti range in size from small and globular to tall and columnar."
+		
+		
 		self.iter = 0
 		self.strPos = 0
 		self.newSystemTime = 300
@@ -245,14 +249,21 @@ class TestContext( BaseContext ):
 					self.universe.unRenderDetail( self.lastDetail )
 				#print self.planetMoons
 				#render font geom
-				self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ foundPlanet.name - self.offset] )
-				self.strPos += 1
+				geom = []
+				gNum = 0
+				while gNum<240:
+					tmpGeom = basenodes.Text( fontStyle=self.styles[0], string=self.bigString[ gNum ] )
+					geom.append( tmpGeom )
+					gNum += 1
+					print "rendred a: ", self.bigString[ gNum ]
+				
+				#self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ foundPlanet.name - self.offset] )
+				#self.strPos += 1
 					
 				#render the new one detailed
 				
 				self.lastDetail = foundPlanet
-				self.universe.renderDetail( foundPlanet, self.geometry , self.planetMoons[foundPlanet.name - self.offset] )
-				
+				self.universe.renderDetail( foundPlanet, geom , self.planetMoons[foundPlanet.name - self.offset] )
 				
 				#calc the new point in global space
 				summedTrans =  foundPlanet.translation + foundSys.translation
@@ -290,7 +301,7 @@ class TestContext( BaseContext ):
 			time.sleep( .05 )	
 			
 	def OnTimerFraction( self, event ):
-		self.universe.rotatePlanets( 60*event.fraction() )
+		self.universe.rotatePlanets( -60*event.fraction() )
 		self.iter = self.iter + 1
 		#print "awesome! %d" % self.iter
 		if(self.iter > 200):  
