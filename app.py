@@ -91,6 +91,27 @@ class TestContext( BaseContext ):
 		#	for p in range( int(numPlan) ):
 		#		numMoons = random.random()*4+1
 		#		self.universe.addPlanet( p,int(numMoons) )
+		
+		#get fonts
+		providers = fontprovider.getProviders( 'solid' )
+		if not providers:
+			raise ImportError( """NONONO solid font providers registered! Demo won't function properly!""" )
+		registry = self.getTTFFiles()
+		styles = []
+		for font in registry.familyMembers( 'SANS' ):
+			names = registry.fontMembers( font, 400, 0)
+			for name in names:
+				styles.append( fontstyle3d.FontStyle3D(
+					family = [name],
+					size = .06,
+					justify = "LEFT",
+					thickness = .02,
+					quality = 3,
+					renderSides = 1,
+					renderFront = 1,
+					renderBack = 1,
+				))
+		self.styles = styles
 				
 				
 		####	Starting SQL Integration Here
@@ -133,17 +154,28 @@ class TestContext( BaseContext ):
 			self.uniqueIDs.append(row[0])
 			
 			imageurls = gethistory.getImageUrls(url)
-			self.universe.addPlanet(row[0], len(imageurls))
+			
+			#render font geom for description
+			geom = []
+			gNum = 0
+			while gNum<240:
+				tmpGeom = basenodes.Text( fontStyle=self.styles[0], string=self.bigString[ gNum ] )
+				geom.append( tmpGeom )
+				gNum += 1
+				#print "rendred a: ", self.bigString[ gNum ]
+				
+			#render font geom for title
 			names = url.split('/')
 			wikititle = names[len(names) - 1]
 			wikititle = wikititle.replace('_', ' ')
 			self.stringArray.append(wikititle)
+			title = basenodes.Text( fontStyle=self.styles[0], string=wikititle )
 			
-			
+			#get list of image urls for planet moons
 			fileList = list()
 			for image in imageurls:
 				linetoExec = "wget " + image
-				
+
 				fullpath = image.split('/')
 				existsOrNot =  os.path.exists( fullpath[len(fullpath) - 1] )
 				if(existsOrNot):
@@ -151,10 +183,12 @@ class TestContext( BaseContext ):
 				else:
 					fileList.append( fullpath[len(fullpath) - 1] )
 					os.system(linetoExec)  #uncomment this before real runs
-				
-			self.planetMoons.append(fileList)
+			#self.planetMoons.append(fileList)
 			
-			# send file list to moons
+			####
+			#FINALLY add the planet to the current solar system
+			self.universe.addPlanet(row[0], len(imageurls), title, geom, fileList)
+			
 				
 
 						
@@ -170,27 +204,6 @@ class TestContext( BaseContext ):
 		self.STEPDISTANCE = 5.0
 		self.newPos = self.initialPosition
 		self.goTo = 0
-		
-		#get fonts
-		providers = fontprovider.getProviders( 'solid' )
-		if not providers:
-			raise ImportError( """NONONO solid font providers registered! Demo won't function properly!""" )
-		registry = self.getTTFFiles()
-		styles = []
-		for font in registry.familyMembers( 'SANS' ):
-			names = registry.fontMembers( font, 400, 0)
-			for name in names:
-				styles.append( fontstyle3d.FontStyle3D(
-					family = [name],
-					size = .06,
-					justify = "LEFT",
-					thickness = .02,
-					quality = 3,
-					renderSides = 1,
-					renderFront = 1,
-					renderBack = 1,
-				))
-		self.styles = styles
 				
 		#r = threading.Thread( target = self.randomiser )
 		#r.setDaemon(1)
@@ -243,31 +256,19 @@ class TestContext( BaseContext ):
 			
 			
 			if foundPlanet and foundSys:
-				print "found planet:",foundPlanet.name, "in sys:", foundSys.name
+				print "found planet:",foundPlanet.choice[0].name, "in sys:", foundSys.name
 				#if there is one rendered detailed... put the simple back in
 				if self.lastDetail:
-					self.universe.unRenderDetail( self.lastDetail )
-				#print self.planetMoons
-				#render font geom
-				geom = []
-				gNum = 0
-				while gNum<240:
-					tmpGeom = basenodes.Text( fontStyle=self.styles[0], string=self.bigString[ gNum ] )
-					geom.append( tmpGeom )
-					gNum += 1
-					print "rendred a: ", self.bigString[ gNum ]
-				
-				#self.geometry = basenodes.Text( fontStyle=self.styles[0], string=self.stringArray[ foundPlanet.name - self.offset] )
-				#self.strPos += 1
+					self.universe.unRenderDetail( self.lastDetail )				
 					
-				#render the new one detailed
-				
+				#switchbetween levels of detail
 				self.lastDetail = foundPlanet
-				self.universe.renderDetail( foundPlanet, geom , self.planetMoons[foundPlanet.name - self.offset] )
+				self.universe.renderDetail( foundPlanet )
+				print "RENDRED DETAIL"
 				
 				#calc the new point in global space
-				summedTrans =  foundPlanet.translation + foundSys.translation
-				self.newPos = ( summedTrans[0], summedTrans[1], summedTrans[2]+2 )
+				summedTrans =  foundPlanet.choice[0].translation + foundSys.translation
+				self.newPos = ( summedTrans[0], summedTrans[1], summedTrans[2]+1.2 )
 				self.goTo = 1
 								
 								

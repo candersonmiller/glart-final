@@ -1,10 +1,13 @@
 #! /usr/bin/env python
-from OpenGLContext.scenegraph import basenodes, indexedlineset
+from OpenGLContext.scenegraph import *
 import math, random
 
 from OpenGLContext import displaylist
 from OpenGLContext.scenegraph.text import toolsfont
 from OpenGLContext.scenegraph import imagetexture
+
+import PIL
+from PIL import Image
 
 
 class Universe( object ):
@@ -60,7 +63,7 @@ class Universe( object ):
 		self.uni.children[0].children = tmpHolder
 		
 		
-	def addPlanet( self, name, moonsNum ):
+	def addPlanet( self, name, moonsNum, title, geom, urls ):
 		"""adds planet (webpage) to last solar system"""
 		#make moon children transform
 		moonChildren = []
@@ -132,15 +135,63 @@ class Universe( object ):
 		)
 		planetAndMoons.name = name
 		planetAndMoons.sensititive = 0
-
-		#add t (planet) to solar sys
+		
+		#made detail nodes
+		detailPlanet = self.makeSpiral( geom )	
+		detailMoons = self.textureMoons( moons,urls )
+		xTrans = len(title.string[0])*-0.015
+		print "l ",xTrans
+		dTitle = basenodes.Transform(
+			translation = (xTrans,0.25,0),
+			rotation = (0,0,0,0),
+			children = [
+				basenodes.Shape(
+					geometry = title,
+					appearance = basenodes.Appearance(
+						material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+					),
+				)
+			]
+		)
+		dTitleBB = basenodes.Billboard(
+			axisOfRotation = (0,1,0),
+			children = [ dTitle ]
+		)
+		#make the detail leg of the switch
+		planetAndMoonsDetail = basenodes.Transform(
+			translation = p,
+			rotation = (0,1,0,0),
+			children = [
+				detailPlanet,
+				detailMoons,
+				dTitleBB
+			]
+		)
+		planetAndMoonsDetail.name = name
+		planetAndMoonsDetail.sensititive = 0
+		
+		#make switch
+		detailSwitch = basenodes.Switch(
+			whichChoice = 0,
+			choice = [
+				planetAndMoons,
+				planetAndMoonsDetail,
+			],
+		)
+		
+		#add (planet) to solar sys
 		tmpHolder = self.uni.children[0].children[-1].children
-		tmpHolder.append(planetAndMoons)
+		tmpHolder.append(detailSwitch)
 		self.uni.children[0].children[-1].children = tmpHolder
 		#calc coors of all planets in solarsys
 		coordsHolder = []
 		for planet in self.uni.children[0].children[-1].children:
-			coordsHolder.append( planet.translation )
+			if len(coordsHolder) == 0:
+				print "sw: ", planet
+				coordsHolder.append( planet.translation )
+			else:
+				print "sw: ", planet
+				coordsHolder.append( planet.choice[0].translation )
 		#put those calced points in the line object in the solarsys, and update length of line
 		self.uni.children[0].children[-1].children[0].children[0].geometry.coord.point = coordsHolder
 		self.uni.children[0].children[-1].children[0].children[0].geometry.coordIndex = range( 1,len(coordsHolder))
@@ -151,7 +202,7 @@ class Universe( object ):
 		"""returns object you are looking for, or null if not found"""
 		print objPath
 		tmpSys = objPath[2].name
-		tmpPlanet = objPath[3].name
+		tmpPlanet = objPath[4].name
 		#find the solar system position
 		sysPos = -1
 		sysNum = 0
@@ -164,8 +215,12 @@ class Universe( object ):
 			planetPos = -1
 			planetNum = 0
 			for planet in self.uni.children[0].children[sysPos].children:
-				if planet.name == tmpPlanet:
-					planetPos = planetNum
+				if planetNum == 0:
+					if planet.name == tmpPlanet:
+						planetPos = planetNum
+				else:
+					if planet.choice[0].name == tmpPlanet:
+						planetPos = planetNum
 				planetNum += 1
 			if planetPos >= 0:
 				print "found planet at:", planetPos
@@ -183,7 +238,6 @@ class Universe( object ):
 		"""returns object you are looking for, or null if not found"""
 		print objPath
 		tmpSys = objPath[2].name
-		tmpPlanet = objPath[3].name
 		#find the solar system position
 		sysPos = -1
 		sysNum = 0
@@ -199,7 +253,7 @@ class Universe( object ):
 			return ()
 		
 		
-	def renderDetail( self, obj, geom, urls ):
+	def renderDetail( self, obj ):
 		"""takes in an object, switches out its geometry for detailed geometry"""
 		#make the detail geometry
 		"""
@@ -217,18 +271,23 @@ class Universe( object ):
 			],
 		)	
 		"""
+		obj.whichChoice = 1
+		"""
 		t = self.makeSpiral( geom )	
-		obj.children[0] = t
+		obj.choice[1].children[0] = t
 		for m in range( len(obj.children[1].children) ):
 			try:
 				tmpTex = imagetexture.ImageTexture( url = [urls[m]] ) 
 			except IOError:
 				print 'oops'
-			obj.children[1].children[m].children[0].children[0].children[0].appearance.texture = tmpTex
+			obj.choice[1].children[1].children[m].children[0].children[0].children[0].appearance.texture = tmpTex
+			"""
 			
 		
 	def unRenderDetail( self, obj ):
 		"""puts the simple geometry back into the passes object"""
+		obj.whichChoice = 0
+		"""
 		obj.children[0].children = [
 			basenodes.TouchSensor(),
 			basenodes.Shape(
@@ -237,16 +296,18 @@ class Universe( object ):
 					material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
 				),
 			),
-		]
+		]"""
 		
 	def rotatePlanets( self, ang ):	
 		"""rotate all the planets"""
 		for s in range( len( self.uni.children[0].children )):
 			for p in range( 1, len( self.uni.children[0].children[s].children ) ):
+				#get the set choice from the detail whitch in the planet
+				choice = self.uni.children[0].children[s].children[p].whichChoice
 				#rotate planet
-				self.uni.children[0].children[s].children[p].children[0].rotation = ( 0,1,0,ang )
+				self.uni.children[0].children[s].children[p].choice[choice].children[0].rotation = ( 0,1,0,ang )
 				#rotate all moons
-				for m in self.uni.children[0].children[s].children[p].children[1].children:
+				for m in self.uni.children[0].children[s].children[p].choice[choice].children[1].children:
 					rotHolder = m.children[0].rotation
 					rotHolder[3] = ang * m.name
 					m.children[0].rotation = rotHolder
@@ -255,39 +316,56 @@ class Universe( object ):
 	def rotateMoons( self, ang ):
 		"""rotates the moons on all the planets"""
 		
-	def makeSpiral( self ):
-		radi = 1
-		sPoints = []
-		zRot = 720
-		while zRot<2880:
-			xyRot = zRot/20
-			zxD = math.sin( radians( xyRot )*radi )
-			yD = math.cos( radians( xyRot )*radi )
-			zD = math.cos( radians( zRot )*zxD )
-			xD = math.sin( radians( zRot )*zxD )
-			zRot += 18
+		
+	def textureMoons( self,plainMoons,urls ):
+		texMoons = []
+		aspect = 1.0
+		for m in plainMoons.children:
+			try:
+				imgURL = urls[ len(texMoons) ]
+				tmpImg = Image.open( imgURL )
+				aspect = tmpImg.size[1]/tmpImg.size[0]
+				tmpTex = imagetexture.ImageTexture( url = [imgURL] ) 
+			except IOError:
+				print 'oops'
 			
-			t = basenodes.Transform(
-				translation = ( xD,yD,zD ),
+			#make the translation Transform for the moon and add it to the rotation Transform
+			mTrans = basenodes.Transform(
+				translation = m.children[0].children[0].translation,
 				rotation = ( 0,0,0,0 ),
-				children = [ 
+				children = [
 					basenodes.Shape(
-						geometry = basenodes.Box( size = (.1,.1,.1) ),
+						geometry = basenodes.Box( size = ( 0.01,0.2*aspect,0.2) ),
 						appearance = basenodes.Appearance(
-							material = basenodes.Material( emissiveColor = (.8,.8,.8) ),
+							texture = tmpTex,
 						),
 					),
 				],
 			)
-			sPoints.append( t )
-			
-		spiral = basenodes.Transform(
+			#make the rotation Transforms for the moon
+			mRotY = basenodes.Transform(
+				translation = (0,0,0 ),
+				rotation = (0,1,0,0),
+				children = [ mTrans ],
+			)
+			mr = random.random()*math.radians(360) #rotation
+			mRotX = basenodes.Transform(
+				translation = (0,0,0 ),
+				rotation = m.rotation,
+				children = [ mRotY ],
+			)
+			speedMultiplyer = random.random()*2.5+0.5
+			mRotX.name = m.name
+			texMoons.append( mRotX )
+
+		#make moons Transform
+		moonsWithTexture = basenodes.Transform(
 			translation = ( 0,0,0 ),
 			rotation = ( 0,0,0,0 ),
-			children = sPoints
+			children = texMoons
 		)
-		return spiral
-			
+		return moonsWithTexture
+
 			
 	def makeSpiral( self,geom ):
 		radi = 0.2
