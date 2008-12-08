@@ -28,6 +28,28 @@ def getImageUrls(url):
 	return imageurls
 
 
+def getDescription(url):
+	request = urllib2.Request(url) #create a request
+	request.add_header('User-Agent', 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4')  #http://whatsmyuseragent.com/
+	opener = urllib2.build_opener()
+	feeddata = opener.open(request).read() #feeddata is the html data received
+	soup = BeautifulSoup(''.join(feeddata))  #make it into beautifulsoup
+	soup.prettify() #correct errors
+	paras = soup.findAll('p')
+	
+	
+	
+	i = 0
+	text = ''
+	for pa in paras:
+		for res in pa.findAll(text=True):
+			if(i > 2):
+				text = text + res
+		i = i + 1
+	
+	return text.replace('\n','  ')
+
+	
 
 ## send SQL formatted time 1, SQL formatted time 2, and if they are greater than N seconds apart, it will return false, else it will return false
 def timeDiff(time1, time2, secondsApart):
