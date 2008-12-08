@@ -29,6 +29,8 @@ def getImageUrls(url):
 
 
 def getDescription(url):
+	sizeToReturn = 200
+	
 	request = urllib2.Request(url) #create a request
 	request.add_header('User-Agent', 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4')  #http://whatsmyuseragent.com/
 	opener = urllib2.build_opener()
@@ -47,7 +49,14 @@ def getDescription(url):
 				text = text + res
 		i = i + 1
 	
-	return text.replace('\n','  ')
+	
+	textToReturn = text.replace('\n','  ')
+	
+	if(len(textToReturn) < sizeToReturn):
+		return textToReturn
+	else:
+		return textToReturn[0:sizeToReturn]
+
 
 	
 
