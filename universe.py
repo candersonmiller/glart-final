@@ -321,7 +321,7 @@ class Universe( object ):
 			try:
 				imgURL = urls[ len(texMoons) ]
 				tmpImg = Image.open( imgURL )
-				aspect = tmpImg.size[1]/tmpImg.size[0]
+				aspect = tmpImg.size[0]/tmpImg.size[1]
 				tmpTex = imagetexture.ImageTexture( url = [imgURL] ) 
 			except IOError:
 				print 'oops'
@@ -332,7 +332,7 @@ class Universe( object ):
 				rotation = ( 0,0,0,0 ),
 				children = [
 					basenodes.Shape(
-						geometry = basenodes.Box( size = ( 0.01,0.2*aspect,0.2) ),
+						geometry = basenodes.Box( size = ( 0.01,0.2,0.2*aspect) ),
 						appearance = basenodes.Appearance(
 							texture = tmpTex,
 						),
