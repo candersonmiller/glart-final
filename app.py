@@ -60,7 +60,7 @@ class TestContext( BaseContext ):
 		
 		self.iter = 0
 		self.strPos = 0
-		self.newSystemTime = 300
+		self.newSystemTime = 45
 		self.systemIterator = 0
 		self.uniqueIDs = []
 		
