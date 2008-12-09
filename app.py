@@ -21,6 +21,7 @@ from OpenGLContext import trackball
 from OpenGLContext.events.timer import Timer
 from OpenGLContext.scenegraph.text import toolsfont, fontprovider, fontstyle3d
 from OpenGLContext import displaylist
+from time import time
 
 ### Stuff For Wikipedia Image Import
 import urllib2
@@ -45,10 +46,20 @@ psyco.full()
 #from OpenGLContext import trackball, quaternion
 
 class TestContext( BaseContext ):
+		
 	def OnInit( self ):
 		
-		self.bigString = "A cactus (plural: cacti or cactuses) is any member of the spine plant family Cactaceae, native to the Americas. They are often used as ornamental plants, but some are also crop plants. Cacti are distinctive and unusual plants, which are adapted to extremely arid and hot environments, showing a wide range of anatomical and physiological features which conserve water. Their stems have expanded into green succulent structures containing the chlorophyll necessary for life and growth, while the leaves have become the spines for which cacti are so well known. Cacti come in a wide range of shapes and sizes. The tallest is Pachycereus pringlei, with a maximum recorded height of 19.2 m,[1] and the smallest is Blossfeldia liliputiana, only about 1 cm diameter at maturity.[2] Cactus flowers are large, and like the spines and branches arise from areoles. Many cactus species are night blooming, as they are pollinated by nocturnal insects or small animals, principally moths and bats. Cacti range in size from small and globular to tall and columnar."
+		self.drawCapture = 0
+		self.capturedImage = ()
+		self.useStringDraw = 0
+		self.reverseShape = 0
+		self.capturedImageFormat = GL_RGB
 		
+		self.planRot = 0;
+		self.frameIter = 0;
+		
+		self.bigString = "A cactus (plural: cacti or cactuses) is any member of the spine plant family Cactaceae, native to the Americas. They are often used as ornamental plants, but some are also crop plants. Cacti are distinctive and unusual plants, which are adapted to extremely arid and hot environments, showing a wide range of anatomical and physiological features which conserve water. Their stems have expanded into green succulent structures containing the chlorophyll necessary for life and growth, while the leaves have become the spines for which cacti are so well known. Cacti come in a wide range of shapes and sizes. The tallest is Pachycereus pringlei, with a maximum recorded height of 19.2 m,[1] and the smallest is Blossfeldia liliputiana, only about 1 cm diameter at maturity.[2] Cactus flowers are large, and like the spines and branches arise from areoles. Many cactus species are night blooming, as they are pollinated by nocturnal insects or small animals, principally moths and bats. Cacti range in size from small and globular to tall and columnar."
+		self.bigString2 = " BOBOBOBO BOBO BOBOBOB BOBO BOB  BOBOB BOBObo Bob OB icas. They are often used as ornamental plants, but some are also crop plants. Cacti are distinctive and unusual plants, which are adapted to extremely arid and hot environments, showing a wide range of anatomical and physiological features which conserve water. Their stems have expanded into green succulent structures containing the chlorophyll necessary for life a"
 		
 		self.iter = 0
 		self.strPos = 0
@@ -56,7 +67,9 @@ class TestContext( BaseContext ):
 		self.systemIterator = 0
 		self.uniqueIDs = []
 		
-		glutReshapeWindow( 800, 600)
+		self.whichSTR = 0
+		
+		glutReshapeWindow( 1400, 850)
 		glutPositionWindow( 0, 0 )
 		
 		self.time = Timer( duration = 60.0, repeating = 1 )
@@ -84,13 +97,7 @@ class TestContext( BaseContext ):
 		#make some random planets and systems
 		#self.universe = universe.Universe()
 		
-		#numSys = 10#random.random()*100
-		#for s in range( int(numSys) ):
-		#	self.universe.addSys( s )
-		#	numPlan = 8#random.random()*100+1
-		#	for p in range( int(numPlan) ):
-		#		numMoons = random.random()*4+1
-		#		self.universe.addPlanet( p,int(numMoons) )
+		self.addEventHandler( 'keypress', name='s', function=self.OnSave )
 		
 		#get fonts
 		providers = fontprovider.getProviders( 'solid' )
@@ -112,7 +119,14 @@ class TestContext( BaseContext ):
 					renderBack = 1,
 				))
 		self.styles = styles
-				
+		
+		#render all ascii
+		self.ascii = []
+		asciiNum = 32
+		while asciiNum<128:
+			self.ascii.append( basenodes.Text( fontStyle=self.styles[0], string=chr(asciiNum) ) )
+			asciiNum += 1
+						
 				
 		####	Starting SQL Integration Here
 		self.universe = universe.Universe()
@@ -155,14 +169,28 @@ class TestContext( BaseContext ):
 			
 			imageurls = gethistory.getImageUrls(url)
 			
-			#render font geom for description
+			
+			#make geometry array for description
 			geom = []
 			gNum = 0
-			while gNum<240:
-				tmpGeom = basenodes.Text( fontStyle=self.styles[0], string=self.bigString[ gNum ] )
-				geom.append( tmpGeom )
+			descripStr = gethistory.getDescription(url)
+			
+			while gNum<200:
+				strr = descripStr[ gNum ]  #self.bigString[ gNum ] 
+				asciiNumber = ord( strr )-32
+				if( not asciiNumber>=0 or not asciiNumber<=95 ):
+					asciiNumber = 0
+					print "OUTOFBOUNDS"
+				geom.append( self.ascii[ asciiNumber ] )
 				gNum += 1
-				#print "rendred a: ", self.bigString[ gNum ]
+				
+			if( self.whichSTR == 0):
+				self.whichSTR = 1
+			else:
+				self.whichSTR = 0
+				
+			print self.whichSTR
+							
 				
 			#render font geom for title
 			names = url.split('/')
@@ -188,8 +216,7 @@ class TestContext( BaseContext ):
 			####
 			#FINALLY add the planet to the current solar system
 			self.universe.addPlanet(row[0], len(imageurls), title, geom, fileList)
-			
-				
+					
 
 						
 		"""Setup callbacks and build geometry for rendering"""
@@ -208,9 +235,16 @@ class TestContext( BaseContext ):
 		#r = threading.Thread( target = self.randomiser )
 		#r.setDaemon(1)
 		#r.start()
-		
+	
 
 	def OnIdle( self, ):
+		#rotate the planets
+		self.planRot -= 0.06
+		self.universe.rotatePlanets( self.planRot )
+		#same the frame to an image
+		self.SaveTo( 'img/movie01_'+str(self.frameIter)+'.png' )
+		self.frameIter += 1
+		
 		if self.goTo:
 			self.tweenCam()
 		self.triggerRedraw(1)
@@ -302,7 +336,7 @@ class TestContext( BaseContext ):
 			time.sleep( .05 )	
 			
 	def OnTimerFraction( self, event ):
-		self.universe.rotatePlanets( -60*event.fraction() )
+		#self.universe.rotatePlanets( -60*event.fraction() )
 		self.iter = self.iter + 1
 		#print "awesome! %d" % self.iter
 		if(self.iter > 200):  
@@ -310,7 +344,7 @@ class TestContext( BaseContext ):
 			self.iter = 0
 		
 	def tweenCam( self ):
-		speed = 0.1
+		speed = 0.2
 		#move to newPos
 		deltaVector = ( self.newPos[0]-self.platform.position[0] , self.newPos[1]-self.platform.position[1], self.newPos[2]-self.platform.position[2] )
 		deltaInc = ( deltaVector[0]*speed,deltaVector[1]*speed,deltaVector[2]*speed )
@@ -396,7 +430,47 @@ class TestContext( BaseContext ):
 				fileList.append( fullpath[len(fullpath) - 1] )
 				os.system(linetoExec)  #uncomment this before real runs
 				
-			self.planetMoons.append(fileList)
+				self.planetMoons.append(fileList)
+	
+	def OnSave( self, event=None):
+		self.SaveTo( 'img/test.png' )
+	def SaveTo( self, filename, format="PNG" ):
+		import Image
+		if not len(self.capturedImage):
+			self.OnCaptureColour()
+		data = self.capturedImage
+		if self.capturedImageFormat == GL_RGB:
+			pixelFormat = 'RGB'
+		else:
+			pixelFormat = 'L'
+		width,height,depth = self.capturedSize
+		image = Image.fromstring( pixelFormat, (int(width),int(height)), data.tostring() )
+		image = image.transpose( Image.FLIP_TOP_BOTTOM)
+		image.save( filename, format )
+		print 'Saved image to %s'% (os.path.abspath( filename))
+		self.capturedImage = ()
+		return image
+	def OnCaptureColour( self , event=None):
+		import Image # get PIL's functionality...
+		width, height = self.getViewPort()
+		glPixelStorei(GL_PACK_ALIGNMENT, 1)
+		data = glReadPixelsub(0, 0, width, height, GL_RGB)
+		assert data.shape == (width,height,3), """Got back array of shape %r, expected %r"""%(
+			data.shape,
+			(width,height,3),
+		)
+		string = data.tostring()
+		print 'array returned was', data.shape
+		if self.reverseShape:
+			data.shape = (height,width,3)
+			print 'reversed shape', data.shape
+		assert data.tostring() == string, """Data stored differs in format"""
+		self.capturedImage = data
+		self.capturedImageFormat = GL_RGB
+		self.capturedSize = (width,height,3)
+			
+#def runprofile():
+#	MainFunction ( TestContext )
 
 if __name__ == "__main__":
-	MainFunction ( TestContext)
+	MainFunction ( TestContext )
