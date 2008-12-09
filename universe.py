@@ -50,7 +50,7 @@ class Universe( object ):
 		)
 		l.name = "line"
 		#transform to hold solar system
-		p = random.random()*44-22, random.random()*12-6, random.random()*44-22 #position
+		p = random.random()*120-60, random.random()*24-12, random.random()*88-44 #position
 		r = random.random()*math.radians(180) #rotation
 		t = basenodes.Transform(
 			translation = p,
@@ -316,15 +316,16 @@ class Universe( object ):
 		
 	def textureMoons( self,plainMoons,urls ):
 		texMoons = []
-		aspect = 1.0
 		for m in plainMoons.children:
+			tmpTex = ()
+			aspect = 1.0
 			try:
 				imgURL = urls[ len(texMoons) ]
 				tmpImg = Image.open( imgURL )
 				aspect = tmpImg.size[0]/tmpImg.size[1]
 				tmpTex = imagetexture.ImageTexture( url = [imgURL] ) 
 			except IOError:
-				print 'oops'
+				print 'OOOOOOOPs IO ERROR ON FILE'
 			
 			#make the translation Transform for the moon and add it to the rotation Transform
 			mTrans = basenodes.Transform(

@@ -58,9 +58,6 @@ class TestContext( BaseContext ):
 		self.planRot = 0;
 		self.frameIter = 0;
 		
-		self.bigString = "A cactus (plural: cacti or cactuses) is any member of the spine plant family Cactaceae, native to the Americas. They are often used as ornamental plants, but some are also crop plants. Cacti are distinctive and unusual plants, which are adapted to extremely arid and hot environments, showing a wide range of anatomical and physiological features which conserve water. Their stems have expanded into green succulent structures containing the chlorophyll necessary for life and growth, while the leaves have become the spines for which cacti are so well known. Cacti come in a wide range of shapes and sizes. The tallest is Pachycereus pringlei, with a maximum recorded height of 19.2 m,[1] and the smallest is Blossfeldia liliputiana, only about 1 cm diameter at maturity.[2] Cactus flowers are large, and like the spines and branches arise from areoles. Many cactus species are night blooming, as they are pollinated by nocturnal insects or small animals, principally moths and bats. Cacti range in size from small and globular to tall and columnar."
-		self.bigString2 = " BOBOBOBO BOBO BOBOBOB BOBO BOB  BOBOB BOBObo Bob OB icas. They are often used as ornamental plants, but some are also crop plants. Cacti are distinctive and unusual plants, which are adapted to extremely arid and hot environments, showing a wide range of anatomical and physiological features which conserve water. Their stems have expanded into green succulent structures containing the chlorophyll necessary for life a"
-		
 		self.iter = 0
 		self.strPos = 0
 		self.newSystemTime = 300
@@ -69,8 +66,10 @@ class TestContext( BaseContext ):
 		
 		self.whichSTR = 0
 		
+
 		glutReshapeWindow( 1400, 850)
 		glutPositionWindow( 0, 0 )
+		glutFullScreen( )
 		
 		self.time = Timer( duration = 60.0, repeating = 1 )
 		self.time.addEventHandler( "fraction", self.OnTimerFraction )
@@ -239,10 +238,10 @@ class TestContext( BaseContext ):
 
 	def OnIdle( self, ):
 		#rotate the planets
-		self.planRot -= 0.06
+		self.planRot -= 0.08
 		self.universe.rotatePlanets( self.planRot )
 		#same the frame to an image
-		self.SaveTo( 'img/movie01_'+str(self.frameIter)+'.png' )
+		#self.SaveTo( 'img/movie01_'+str(self.frameIter)+'.png' )
 		self.frameIter += 1
 		
 		if self.goTo:
@@ -387,6 +386,8 @@ class TestContext( BaseContext ):
 		row = cursor.fetchone()
 		lastHighest = "%s" % row[2]
 		
+
+		
 		
 		cursor = conn.cursor()
 		cursor.execute( "SELECT * FROM history WHERE id > %d" % largestRecord)
@@ -415,13 +416,28 @@ class TestContext( BaseContext ):
 			url = row[1]
 			self.uniqueIDs.append(row[0])
 			imageurls = gethistory.getImageUrls(url)
-			self.universe.addPlanet(row[0], len(imageurls))
+
+			#render font geom for title
 			names = url.split('/')
 			wikititle = names[len(names) - 1]
 			wikititle = wikititle.replace('_', ' ')
 			self.stringArray.append(wikititle)
+			title = basenodes.Text( fontStyle=self.styles[0], string=wikititle )
+
+			#make geometry array for description
+			geom = []
+			gNum = 0
+			descripStr = gethistory.getDescription(url)
 			
-			
+			while gNum<200:
+				strr = descripStr[ gNum ]  #self.bigString[ gNum ] 
+				asciiNumber = ord( strr )-32
+				if( not asciiNumber>=0 or not asciiNumber<=95 ):
+					asciiNumber = 0
+					print "OUTOFBOUNDS"
+				geom.append( self.ascii[ asciiNumber ] )
+				gNum += 1
+
 			fileList = list()
 			#do this stuff in a thread
 			for image in imageurls:
@@ -431,6 +447,16 @@ class TestContext( BaseContext ):
 				os.system(linetoExec)  #uncomment this before real runs
 				
 				self.planetMoons.append(fileList)
+
+			#self.universe.addPlanet(row[0], len(imageurls))
+			self.universe.addPlanet(row[0], len(imageurls), title, geom, fileList)
+			names = url.split('/')
+			wikititle = names[len(names) - 1]
+			wikititle = wikititle.replace('_', ' ')
+			self.stringArray.append(wikititle)
+			
+			
+			
 	
 	def OnSave( self, event=None):
 		self.SaveTo( 'img/test.png' )
