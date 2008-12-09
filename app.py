@@ -441,7 +441,7 @@ class TestContext( BaseContext ):
 			fileList = list()
 			#do this stuff in a thread
 			for image in imageurls:
-				linetoExec = "wget " + image
+				linetoExec = "wget -b " + image
 				fullpath = image.split('/')
 				fileList.append( fullpath[len(fullpath) - 1] )
 				os.system(linetoExec)  #uncomment this before real runs
