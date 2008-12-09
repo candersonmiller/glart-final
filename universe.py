@@ -321,8 +321,8 @@ class Universe( object ):
 			aspect = 1.0
 			try:
 				imgURL = urls[ len(texMoons) ]
-				tmpImg = Image.open( imgURL )
-				aspect = tmpImg.size[0]/tmpImg.size[1]
+				#tmpImg = Image.open( imgURL )
+				#aspect = tmpImg.size[0]/tmpImg.size[1]
 				tmpTex = imagetexture.ImageTexture( url = [imgURL] ) 
 			except IOError:
 				print 'OOOOOOOPs IO ERROR ON FILE'
