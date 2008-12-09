@@ -16,6 +16,7 @@ def getImageUrls(url):
 	request.add_header('User-Agent', 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4')  #http://whatsmyuseragent.com/
 	opener = urllib2.build_opener()
 	feeddata = opener.open(request).read() #feeddata is the html data received
+	opener.close()
 	soup = BeautifulSoup(''.join(feeddata))  #make it into beautifulsoup
 	soup.prettify() #correct errors
 	images = soup.findAll('img') #search for images
@@ -35,6 +36,7 @@ def getDescription(url):
 	request.add_header('User-Agent', 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.5; en-US; rv:1.9.0.4) Gecko/2008102920 Firefox/3.0.4')  #http://whatsmyuseragent.com/
 	opener = urllib2.build_opener()
 	feeddata = opener.open(request).read() #feeddata is the html data received
+	opener.close()
 	soup = BeautifulSoup(''.join(feeddata))  #make it into beautifulsoup
 	soup.prettify() #correct errors
 	paras = soup.findAll('p')
