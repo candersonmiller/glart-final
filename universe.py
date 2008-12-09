@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from OpenGLContext.scenegraph import *
 import math, random
+from time import time
 
 from OpenGLContext import displaylist
 from OpenGLContext.scenegraph.text import toolsfont
@@ -49,7 +50,7 @@ class Universe( object ):
 		)
 		l.name = "line"
 		#transform to hold solar system
-		p = random.random()*44-22, random.random()*12-6, random.random()*44-22 #position
+		p = random.random()*120-60, random.random()*24-12, random.random()*88-44 #position
 		r = random.random()*math.radians(180) #rotation
 		t = basenodes.Transform(
 			translation = p,
@@ -140,7 +141,6 @@ class Universe( object ):
 		detailPlanet = self.makeSpiral( geom )	
 		detailMoons = self.textureMoons( moons,urls )
 		xTrans = len(title.string[0])*-0.015
-		print "l ",xTrans
 		dTitle = basenodes.Transform(
 			translation = (xTrans,0.25,0),
 			rotation = (0,0,0,0),
@@ -187,10 +187,8 @@ class Universe( object ):
 		coordsHolder = []
 		for planet in self.uni.children[0].children[-1].children:
 			if len(coordsHolder) == 0:
-				print "sw: ", planet
 				coordsHolder.append( planet.translation )
 			else:
-				print "sw: ", planet
 				coordsHolder.append( planet.choice[0].translation )
 		#put those calced points in the line object in the solarsys, and update length of line
 		self.uni.children[0].children[-1].children[0].children[0].geometry.coord.point = coordsHolder
@@ -310,8 +308,7 @@ class Universe( object ):
 				for m in self.uni.children[0].children[s].children[p].choice[choice].children[1].children:
 					rotHolder = m.children[0].rotation
 					rotHolder[3] = ang * m.name
-					m.children[0].rotation = rotHolder
-		
+					m.children[0].rotation = rotHolder		
 						
 	def rotateMoons( self, ang ):
 		"""rotates the moons on all the planets"""
@@ -319,15 +316,16 @@ class Universe( object ):
 		
 	def textureMoons( self,plainMoons,urls ):
 		texMoons = []
-		aspect = 1.0
 		for m in plainMoons.children:
+			tmpTex = ()
+			aspect = 1.0
 			try:
 				imgURL = urls[ len(texMoons) ]
 				tmpImg = Image.open( imgURL )
-				aspect = tmpImg.size[1]/tmpImg.size[0]
+				aspect = tmpImg.size[0]/tmpImg.size[1]
 				tmpTex = imagetexture.ImageTexture( url = [imgURL] ) 
 			except IOError:
-				print 'oops'
+				print 'OOOOOOOPs IO ERROR ON FILE'
 			
 			#make the translation Transform for the moon and add it to the rotation Transform
 			mTrans = basenodes.Transform(
@@ -335,7 +333,7 @@ class Universe( object ):
 				rotation = ( 0,0,0,0 ),
 				children = [
 					basenodes.Shape(
-						geometry = basenodes.Box( size = ( 0.01,0.2*aspect,0.2) ),
+						geometry = basenodes.Box( size = ( 0.01,0.2,0.2*aspect) ),
 						appearance = basenodes.Appearance(
 							texture = tmpTex,
 						),
