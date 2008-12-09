@@ -53,7 +53,9 @@ def getDescription(url):
 	textToReturn = text.replace('\n','  ')
 	
 	if(len(textToReturn) < sizeToReturn):
-		return textToReturn
+		while(len(textToReturn) < sizeToReturn):
+			textToReturn = textToReturn + "    "
+		return textToReturn[0:sizeToReturn]
 	else:
 		return textToReturn[0:sizeToReturn]
 
